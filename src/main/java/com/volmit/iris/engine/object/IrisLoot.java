@@ -129,7 +129,6 @@ public class IrisLoot {
         if (debug) {
             chance.reset();
         }
-        Iris.debug(table.getName() + " / " + x + " / " + y + " / " + z);
         if (giveSomething || chance.aquire(() -> NoiseStyle.STATIC.create(rng)).fit(1, rarity * table.getRarity(), x, y, z) == 1) {
             try {
                 ItemStack is = getItemStack(rng);
