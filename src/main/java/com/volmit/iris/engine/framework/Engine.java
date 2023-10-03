@@ -345,6 +345,7 @@ public interface Engine extends DataProvider, Fallible, LootProvider, BlockUpdat
 
     @BlockCoordinates
     @Override
+
     default void update(int x, int y, int z, Chunk c, RNG rf) {
         Block block = c.getBlock(x, y, z);
         BlockData data = block.getBlockData();
@@ -361,8 +362,17 @@ public interface Engine extends DataProvider, Fallible, LootProvider, BlockUpdat
                 KList<IrisLootTable> tables = getLootTables(rx, block);
 
                 try {
+                    Bukkit.getPluginManager().callEvent(new IrisLootEvent(this, block, slot, tables));
+
+                    if (!tables.isEmpty()){
+                        Iris.debug("IrisLootEvent has been accessed");
+                    }
+
+                    if (tables.isEmpty())
+                        return;
                     InventoryHolder m = (InventoryHolder) block.getState();
                     addItems(false, m.getInventory(), rx, tables, slot, x, y, z, 15);
+
                 } catch (Throwable e) {
                     Iris.reportError(e);
                 }
@@ -758,6 +768,14 @@ public interface Engine extends DataProvider, Fallible, LootProvider, BlockUpdat
         String[] v = objectAt.split("\\Q@\\E");
         String object = v[0];
         int id = Integer.parseInt(v[1]);
+
+
+        IrisContext.getOr(this);
+        IrisJigsawPiece piece = getMantle().getMantle().get(x, y, z, IrisJigsawPiece.class);
+        if (piece != null && piece.getObject().equals(object)) {
+            return new PlacedObject(piece.getPlacementOptions(), getData().getObjectLoader().load(object), id, x, z);
+        }
+
         IrisRegion region = getRegion(x, z);
 
         for (IrisObjectPlacement i : region.getObjects()) {
@@ -776,7 +794,6 @@ public interface Engine extends DataProvider, Fallible, LootProvider, BlockUpdat
 
         return new PlacedObject(null, getData().getObjectLoader().load(object), id, x, z);
     }
-
 
     int getCacheID();
 
